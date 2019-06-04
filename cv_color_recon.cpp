@@ -7,9 +7,18 @@
 using namespace std;
 using namespace cv;
 
+Scalar vermelho = Scalar(0  ,0  ,255);
+Scalar azul     = Scalar(255,0  ,0  );
+Scalar verde    = Scalar(0  ,255,0  );
+Scalar laranja  = Scalar(0  ,165,255);
+Scalar branco   = Scalar(255,255,255);
+Scalar amarelo  = Scalar(0  ,255,255);
+Scalar cinza    = Scalar(169, 169, 169);
+int    I_max    = 765;
+
 void proc(Mat& matrix) {
 	flip(matrix, matrix, 1);
-	matrix.convertTo(matrix, -1, 2, 50);
+	matrix.convertTo(matrix, -1, 2, 0);
 
 	rectangle(matrix, Rect(matrix.cols/2-30, matrix.rows/2-30, 60, 60), Scalar(0, 255, 0), 3);
 	rectangle(matrix, Rect((matrix.cols/2-70)-30, (matrix.rows/2)-30, 60, 60), Scalar(0, 255, 0), 3);
@@ -53,6 +62,23 @@ Scalar averageColor(Mat R, Mat G, Mat B){
 
 	return Scalar(b_media,g_media,r_media);
 }
+
+int maior(Scalar cor) {
+	if (cor.val[0] > cor.val[1] && cor.val[0] > cor.val[2])
+		return cor.val[0];
+	else if (cor.val[1] > cor.val[2])
+		return cor.val[1];
+	else
+		return cor.val[2];
+}
+/*
+void fit(Scalar cor) {
+	float I = cor.val[0] + cor.val[1] + cor.val[2];
+	float correcao = I_max/I;
+	for (int i = 0; i < 3; i++)
+		cor.val[i] = cor.val[i]*correcao;
+}
+*/
 int main()
 { 
 	Mat frame;
@@ -110,6 +136,8 @@ int main()
 			}
 			a = 0;
 			*/
+
+			blur(frame, frame, Size(11, 11), Point(10,10));
 
 			rgbScan(frame, red[0], green[0], blue[0], -70, -70);
 			rgbScan(frame, red[1], green[1], blue[1],   0, -70);
@@ -193,34 +221,55 @@ int main()
 	for(int i=0;i<9;i++)
 		cor[i]=averageColor(red[i],green[i],blue[i]);
 	
-	int max = 0;
+	int r = 0;
+	int g = 0;
+	int b = 0;
 	for (int i = 0; i < 9; i++) {
-		cout <<"[" << cor[i].val[0] << ", ";
-		cout << cor[i].val[1] << ", ";
-		cout << cor[i].val[2] << "] ";
+		
+		//fit(cor[i]);
+		
+		b = ((int)(cor[i].val[0]*255/maior(cor[i])+1)/16)*16;
+		g = ((int)(cor[i].val[1]*255/maior(cor[i])+1)/16)*16;
+		r = ((int)(cor[i].val[2]*255/maior(cor[i])+1)/16)*16;
+		
+
+		cout <<"[" << b << ", ";
+		cout << g << ", ";
+		cout << r << "] ";
 		if (i % 3 == 2) {
 			cout << endl;
 		}
-		if (cor[i].val[0] < cor[i].val[1]) {
-			if (cor[i].val[1] < cor[i].val[2]) {
-				max = cor[i].val[2];
+
+		if (r > g && r > b) {
+			if (g > 128) {
+				cor[i] = amarelo;
+			}else if (b > 128) {
+				cor[i] = branco;
+			}
+			else if (g - b >= 0) {
+				cor[i] = laranja;
+			}else {
+				cor[i] = vermelho;
+			}
+		}
+		else if (b > g) {
+			if (r > 128) {
+				cor[i] = branco;
 			}
 			else {
-				max = cor[i].val[1];
+				cor[i] = azul;
 			}
 		}
-		else {
-			if (cor[i].val[0]<cor[i].val[2]) {
-				max = cor[i].val[2];
+		else{
+			if (b > 128) {
+				cor[i] = branco;
 			}
-			else
-			{
-				max = cor[i].val[0];
+			else {
+				cor[i] = verde;
 			}
 		}
-		cor[i].val[0] = cor[i].val[0]*255/max;
-		cor[i].val[1] = cor[i].val[1]*255/max;
-		cor[i].val[2] = cor[i].val[2]*255/max;
+		
+		
 	}
 
 	rectangle(frame, Point(5, 5), Point(15, 15), cor[0], -1);
