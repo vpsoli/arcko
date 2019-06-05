@@ -14,6 +14,7 @@ Scalar laranja  = Scalar(0  ,165,255);
 Scalar branco   = Scalar(255,255,255);
 Scalar amarelo  = Scalar(0  ,255,255);
 Scalar cinza    = Scalar(169, 169, 169);
+Scalar preto    = Scalar(0  ,0   ,0);
 int    I_max    = 765;
 
 void proc(Mat& matrix) {
@@ -79,6 +80,85 @@ void fit(Scalar cor) {
 		cor.val[i] = cor.val[i]*correcao;
 }
 */
+void colorPatternRecon(Mat frame, Scalar *cor) {
+	int r = 0;
+	int g = 0;
+	int b = 0;
+	for (int i = 0; i < 9; i++) {
+
+		//fit(cor[i]);
+
+		//redução do espaço de cores com ajuste pelo maior coeficiente de intensidade
+		b = ((int)(cor[i].val[0] * 255 / maior(cor[i]) + 1) / 4) * 4;
+		g = ((int)(cor[i].val[1] * 255 / maior(cor[i]) + 1) / 4) * 4;
+		r = ((int)(cor[i].val[2] * 255 / maior(cor[i]) + 1) / 4) * 4;
+
+		/* Printa na tela resultado do processamento das cores médias.
+		cout << "[" << b << ", ";
+		cout << g << ", ";
+		cout << r << "] ";
+		if (i % 3 == 2) {
+			cout << endl;
+		}
+		*/
+
+		//lógica de identificação de cor determinada experimentalmente
+		// em varias condições de luminosidade
+		if (r > g && r > b) {
+			if (g > 128) {
+				cor[i] = amarelo;
+			}
+			else if (b > 128) {
+				cor[i] = branco;
+			}
+			else if ((g - b >= 16 && b != 0) || (g - b > 8 && b == 0 && cor[8].val[0] < 4)) {
+				cor[i] = laranja;
+			}
+			else {
+				cor[i] = vermelho;
+			}
+		}
+		else if (b > g) {
+			if (r > 128) {
+				cor[i] = branco;
+			}
+			else {
+				cor[i] = azul;
+			}
+		}
+		else {
+			if (b > 128) {
+				cor[i] = branco;
+			}
+			else {
+				cor[i] = verde;
+			}
+		}
+
+
+	}
+}
+void colorPatternPlot(Mat frame,Scalar *cor) {
+	int margin[2], gap[2];
+	int width = 10;
+	int height = 10;
+	margin[0] = 5;
+	margin[1] = 5;
+	gap[0] = 3; gap[1] = 3;
+	for (int i = 1; i <= 3; i++) {
+		for (int j = 1; j <= 3; j++) {
+			rectangle(frame, Point(margin[0] + (i - 1) * width + gap[0] * (i - 1),
+				margin[1] + (j - 1) * height + gap[1] * (j - 1)),
+				Point(margin[0] + i * width + gap[0] * (i - 1),
+					margin[1] + j * height + gap[1] * (j - 1)), cor[(j - 1) * 3 + (i - 1)], -1);
+			rectangle(frame, Point(margin[0] + (i - 1) * width + gap[0] * (i - 1),
+				margin[1] + (j - 1) * height + gap[1] * (j - 1)),
+				Point(margin[0] + i * width + gap[0] * (i - 1),
+					margin[1] + j * height + gap[1] * (j - 1)), preto, 0);
+		}
+	}
+}
+
 int main()
 { 
 	Mat frame;
@@ -137,7 +217,7 @@ int main()
 			a = 0;
 			*/
 
-			blur(frame, frame, Size(11, 11), Point(10,10));
+			//blur(frame, frame, Size(11, 11), Point(10,10));
 
 			rgbScan(frame, red[0], green[0], blue[0], -70, -70);
 			rgbScan(frame, red[1], green[1], blue[1],   0, -70);
@@ -221,6 +301,10 @@ int main()
 	for(int i=0;i<9;i++)
 		cor[i]=averageColor(red[i],green[i],blue[i]);
 	
+	colorPatternRecon(frame, cor);
+	colorPatternPlot(frame, cor);
+
+	/*
 	int r = 0;
 	int g = 0;
 	int b = 0;
@@ -228,9 +312,9 @@ int main()
 		
 		//fit(cor[i]);
 		
-		b = ((int)(cor[i].val[0]*255/maior(cor[i])+1)/16)*16;
-		g = ((int)(cor[i].val[1]*255/maior(cor[i])+1)/16)*16;
-		r = ((int)(cor[i].val[2]*255/maior(cor[i])+1)/16)*16;
+		b = ((int)(cor[i].val[0]*255/maior(cor[i])+1)/4)*4;
+		g = ((int)(cor[i].val[1]*255/maior(cor[i])+1)/4)*4;
+		r = ((int)(cor[i].val[2]*255/maior(cor[i])+1)/4)*4;
 		
 
 		cout <<"[" << b << ", ";
@@ -240,13 +324,14 @@ int main()
 			cout << endl;
 		}
 
+		//lógica de identificação de cor determinada empiricamente
 		if (r > g && r > b) {
 			if (g > 128) {
 				cor[i] = amarelo;
 			}else if (b > 128) {
 				cor[i] = branco;
 			}
-			else if (g - b >= 0) {
+			else if ((g-b >= 16 &&  b!=0) || (g-b > 8 && b == 0 && cor[8].val[0] < 4) ) {
 				cor[i] = laranja;
 			}else {
 				cor[i] = vermelho;
@@ -271,7 +356,29 @@ int main()
 		
 		
 	}
+	*/
 
+	/*
+	int margin[2], gap[2];
+	int width = 10;
+	int height = 10;
+	margin[0] = 5;
+	margin[1] = 5;
+	gap[0] = 3; gap[1] = 3;
+	for (int i = 1; i <= 3; i++){
+		for (int j = 1; j <= 3; j++) {
+			rectangle(frame, Point(margin[0] + (i-1)*width + gap[0]*(i-1), 
+			                       margin[1] + (j-1)*height+ gap[1]*(j-1)), 
+				             Point(margin[0] + i*width + gap[0]*(i-1),
+								   margin[1] + j*height+ gap[1]*(j-1)), cor[(j-1)*3+(i-1)], -1);
+			rectangle(frame, Point(margin[0] + (i - 1) * width + gap[0] * (i - 1),
+				                   margin[1] + (j - 1) * height + gap[1] * (j - 1)),
+			                 Point(margin[0] + i * width + gap[0] * (i - 1),
+			                       margin[1] + j * height + gap[1] * (j - 1)), preto, 0);
+		}
+	}
+	*/
+	/*
 	rectangle(frame, Point(5, 5), Point(15, 15), cor[0], -1);
 	rectangle(frame, Point(18, 5), Point(28, 15), cor[1], -1);
 	rectangle(frame, Point(31, 5), Point(41, 15), cor[2], -1);
@@ -281,7 +388,7 @@ int main()
 	rectangle(frame, Point(5, 31), Point(15, 41), cor[6], -1);
 	rectangle(frame, Point(18, 31), Point(28, 41), cor[7], -1);
 	rectangle(frame, Point(31, 31), Point(41, 41), cor[8], -1);
-
+	*/
 	imshow("frame", frame);
 	imwrite("resultado.jpeg", frame);
 	waitKey(0);
