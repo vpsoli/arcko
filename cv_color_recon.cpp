@@ -53,40 +53,35 @@ void rgbScan(Mat source, int (*cor)[3], int dx, int dy) {
 void colorPatternRecon(Mat matrix, int (*cores)[3], int n, Scalar *cor) {
 	rgbScan(matrix, cores, 70, 70);
 	
-	double r = 0;
-	double g = 0;
-	double b = 0;
-	double mag = 0;
+	double h = 0;
+	double s = 0;
+	double v = 0;
 
 	//cout << fixed << setprecision(2) << "\n";
 	system("cls");
 	for (int i = 0; i < 9; i++)
 	{
-		//cout << to_string(cores[0][0])+' ' + to_string(cores[0][1])+ ' ' + to_string(cores[0][2]) + "\n";
+		if (i % 3 == 0)
+			cout << '\n';
+		cout << to_string(cores[i][0])+' ' + to_string(cores[i][1])+ ' ' + to_string(cores[i][2]) + " | ";
 		cor[i] = Scalar(cores[i][0], cores[i][1], cores[i][2]);
 
-		b = cor[i].val[0];
-		g = cor[i].val[1];
-		r = cor[i].val[2];
-
-		mag = sqrt(pow(b, 2) + pow(g, 2) + pow(r, 2));
-
-		b = b/mag; 
-		g = g/mag; 
-		r = r/mag;
+		h = cor[i].val[0];
+		s = cor[i].val[1];
+		v = cor[i].val[2];
 		
-		if (b >= 0.60 && b <= 0.69 &&  g >= 0.51 && g <= 0.60 && r >= 0.49 && r <= 0.62) {
-			cor[i] = branco;
-		}else if (b >= 0.00 && b <= 0.28 && g >= 0.67 && g <= 0.85 && r >= 0.52 && r <= 0.74) {
-			cor[i] = verde;
-		}else if (b >= 0.00 && b <= 0.24 && g >= 0.49 && g <= 0.65 && r >= 0.74 && r <= 0.87) {
-			cor[i] = amarelo;
-		}else if (b >= 0.08 && b <= 0.36 && g >= 0.05 && g <= 0.19 && r >= 0.92 && r <= 1.00) {
-			cor[i] = vermelho;
-		}else if (b >= 0.00 && b <= 0.27 && g >= 0.08 && g <= 0.35 && r >= 0.90 && r <= 1.00) {
-			cor[i] = laranja;
-		}else if (b >= 0.94 && b <= 0.98 && g >= 0.24 && g <= 0.33  && r >= 0.00 && r <= 0.02) {
+		if (h >= 145 && h <= 155) {
 			cor[i] = azul;
+		}else if (h >= 45 && h <= 60) {
+			cor[i] = verde;
+		}else if (h >= 25 && h <= 35) {
+			cor[i] = amarelo;
+		}else if (h >= 240 && h <= 255) {
+			cor[i] = vermelho;
+		}else if (h >= 0 && h <= 5) {
+			cor[i] = laranja;
+		}else if (s <= 50) {
+			cor[i] = branco;
 		}
 		else {
 			cor[i] = cinza;
@@ -138,6 +133,7 @@ int main()
 		{
 			proc(frame, verde);
 			blur(frame, matrix, Size(7, 7), Point(-1, -1));
+			cvtColor(matrix,matrix,COLOR_BGR2HSV_FULL);
 			colorPatternRecon(matrix, cores, 9, cor);
 			colorPatternPlot(frame, cor);
 
